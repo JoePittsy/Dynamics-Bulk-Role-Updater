@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Role_Switcher</RootNamespace>
-    <AssemblyName>Role Switcher</AssemblyName>
+    <AssemblyName>DynamicsBulkRoleUpdater</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -31,6 +31,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>JosephPitts.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="McTools.Xrm.Connection, Version=1.2022.10.54, Culture=neutral, PublicKeyToken=96037217801d9658, processorArchitecture=MSIL">
@@ -232,6 +238,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="JosephPitts.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\LogMessage.datasource" />
     <None Include="Properties\DataSources\Playlist.datasource" />

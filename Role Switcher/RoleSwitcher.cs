@@ -151,6 +151,7 @@ namespace Role_Switcher
             else
             {
                 Settings = new Settings();
+                Settings.Playlists = new List<Playlist> { };
                 Logger.Log(LogLevel.Warning, "Settings not found => a new settings file has been created!");
             }
         }
