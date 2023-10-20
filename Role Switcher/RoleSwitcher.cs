@@ -27,7 +27,8 @@ namespace Role_Switcher
         private BindingList<string> RolesToApply = new BindingList<string>();
         private BindingList<string> AssignedRoles = new BindingList<string>();
         private BindingList<string> UnassignedRoles = new BindingList<string>();
-
+        private StringBuilder SearchText = new StringBuilder();
+        private Timer SearchTimer = new Timer();
         private bool LogsOpen = false;
 
 
@@ -48,6 +49,7 @@ namespace Role_Switcher
             InitializeLogger();
             SetupLogBox();
             SetupDataSourceBindings();
+            InitializeUserGrid();
         }
 
         /// <summary>
@@ -186,7 +188,7 @@ namespace Role_Switcher
         /// </summary>
         /// <param name="data">A list of dictionaries containing the data to be converted.</param>
         /// <returns>A DataTable containing the data from the input list.</returns>
-        private DataTable ConvertToDataTable(List<Dictionary<string, string>> data)
+        private DataTable ConvertToDataTable(List<Dictionary<string, object>> data)
         {
             DataTable dataTable = new DataTable();
 
@@ -206,27 +208,50 @@ namespace Role_Switcher
         }
 
         /// <summary>
+        /// Adds a column to the DataTable.
+        /// </summary>
+        /// <param name="dataTable">The DataTable to add a column to.</param>
+        /// <param name="columnName">The name of the column to add.</param>
+        private void AddColumn(DataTable dataTable, string columnName)
+        {
+            string sanitizedColumnName = SanitizeColumnName(columnName);
+            Logger.Log(LogLevel.Information, $"Adding {sanitizedColumnName} to the table");
+
+            // Add a new column of type string, with the sanitized name.
+            dataTable.Columns.Add(sanitizedColumnName, typeof(string));
+
+            // Set the caption of the column, which can be used for display purposes.
+            dataTable.Columns[sanitizedColumnName].Caption = columnName;
+        }
+
+        /// <summary>
         /// Extracts and sanitizes column names, and adds them as columns to the DataTable.
         /// </summary>
         /// <param name="data">A list of dictionaries containing the data to extract columns from.</param>
         /// <param name="dataTable">The DataTable to add columns to.</param>
-        private void AddColumnsToDataTable(List<Dictionary<string, string>> data, DataTable dataTable)
+        private void AddColumnsToDataTable(List<Dictionary<string, object>> data, DataTable dataTable)
         {
             // Get a distinct list of all keys from the provided data, to be used as column names.
             var allKeys = data.SelectMany(dict => dict.Keys).Distinct().ToList();
 
-            // Add columns to the DataTable.
-            foreach (var key in allKeys)
+            // Ensure systemuserid is the first column if it exists.
+            if (allKeys.Contains("systemuserid"))
             {
-                string sanitizedColumnName = SanitizeColumnName(key);
-                Logger.Log(LogLevel.Information, $"Adding {sanitizedColumnName} to the table");
-
-                // Add a new column of type string, with the sanitized name.
-                dataTable.Columns.Add(sanitizedColumnName, typeof(string));
-
-                // Set the caption of the column, which can be used for display purposes.
-                dataTable.Columns[sanitizedColumnName].Caption = key;
+                AddColumn(dataTable, "systemuserid");
+                allKeys.Remove("systemuserid");
             }
+
+            // Ensure fullname is the second column if it exists.
+            if (allKeys.Contains("fullname"))
+            {
+                AddColumn(dataTable, "fullname");
+                allKeys.Remove("fullname");
+            }
+
+
+            // Add columns to the DataTable.
+            foreach (var key in allKeys) AddColumn(dataTable, key);
+
         }
 
         /// <summary>
@@ -234,7 +259,7 @@ namespace Role_Switcher
         /// </summary>
         /// <param name="data">A list of dictionaries containing the data to be converted.</param>
         /// <param name="dataTable">The DataTable to add rows to.</param>
-        private void AddRowsToDataTable(List<Dictionary<string, string>> data, DataTable dataTable)
+        private void AddRowsToDataTable(List<Dictionary<string, object>> data, DataTable dataTable)
         {
             // Add data to the DataTable.
             foreach (var dict in data)
@@ -261,6 +286,83 @@ namespace Role_Switcher
         {
             return columnName.Replace(".", "_");
         }
+
+        /// <summary>
+        /// Initializes the components related to the DataGridView and its search functionality.
+        /// </summary>
+        private void InitializeUserGrid()
+        {
+            userGrid.KeyPress += UserGrid_KeyPress;
+
+            SearchTimer.Interval = 1000;  // 1 second
+            SearchTimer.Tick += SearchTimer_Tick;
+        }
+
+        /// <summary>
+        /// Handles the KeyPress event of the DataGridView to facilitate the search-as-you-type functionality.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">A KeyPressEventArgs that contains the event data.</param>
+        private void UserGrid_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            try
+            {
+                if (char.IsLetterOrDigit(e.KeyChar) || char.IsWhiteSpace(e.KeyChar))
+                {
+                    SearchText.Append(e.KeyChar);
+                    SearchGrid();
+                    ResetSearchTimer();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle or log the exception as per your application's guidelines.
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Searches the DataGridView based on the accumulated search text and sets focus to the closest match.
+        /// </summary>
+        private void SearchGrid()
+        {
+            if (SearchText.Length <= 0) return;
+
+            string searchValue = SearchText.ToString().ToLower();
+
+            // Assuming the first column as the primary search column; adjust as necessary
+            foreach (DataGridViewRow row in userGrid.Rows)
+            {
+                if (row.Cells[1].Value != null && row.Cells[1].Value.ToString().ToLower().StartsWith(searchValue))
+                {
+                    userGrid.CurrentCell = row.Cells[0];
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resets the search timer, which determines the duration before the accumulated search text is cleared.
+        /// </summary>
+        private void ResetSearchTimer()
+        {
+            SearchTimer.Stop();
+            SearchTimer.Start();
+        }
+
+        /// <summary>
+        /// Handles the Tick event of the searchTimer, which is used to clear the accumulated search text after a specific interval.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The EventArgs instance containing the event data.</param>
+        private void SearchTimer_Tick(object sender, EventArgs e)
+        {
+            SearchTimer.Stop();
+            SearchText.Clear();
+        }
+
+
+
 
         /// <summary>
         /// Initiates an asynchronous operation to fetch user data utilizing a specified fetch method.
@@ -302,7 +404,14 @@ namespace Role_Switcher
         /// <param name="result">Contains the user data to display in the grid.</param>
         private void UpdateUserGrid(EntityCollection result)
         {
-            var data = result.Entities.Select(e => e.FormattedValues.ToDictionary(a => a.Key, a => a.Value)).ToList();
+            var data = result.Entities.Select(e =>
+                    e.Attributes.ToDictionary(
+                        a => a.Key,
+                        a => e.FormattedValues.ContainsKey(a.Key)
+                            ? (object)e.FormattedValues[a.Key]
+                            : a.Value
+                    )
+                ).ToList();
             userGrid.DataSource = ConvertToDataTable(data);
             userGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
         }

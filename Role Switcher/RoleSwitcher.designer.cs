@@ -279,6 +279,7 @@
             this.playlistRoles.Name = "playlistRoles";
             this.playlistRoles.SelectionMode = System.Windows.Forms.SelectionMode.None;
             this.playlistRoles.Size = new System.Drawing.Size(341, 365);
+            this.playlistRoles.Sorted = true;
             this.playlistRoles.TabIndex = 0;
             // 
             // tableLayoutPanel2
@@ -371,6 +372,7 @@
             this.assignedRolesList.Name = "assignedRolesList";
             this.assignedRolesList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.assignedRolesList.Size = new System.Drawing.Size(396, 375);
+            this.assignedRolesList.Sorted = true;
             this.assignedRolesList.TabIndex = 0;
             // 
             // groupBox3
@@ -465,6 +467,7 @@
             this.unassingedRolesList.Name = "unassingedRolesList";
             this.unassingedRolesList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.unassingedRolesList.Size = new System.Drawing.Size(396, 375);
+            this.unassingedRolesList.Sorted = true;
             this.unassingedRolesList.TabIndex = 0;
             // 
             // panel1
