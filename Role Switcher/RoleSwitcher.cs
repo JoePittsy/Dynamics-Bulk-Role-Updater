@@ -186,7 +186,7 @@ namespace Role_Switcher
         /// </summary>
         /// <param name="data">A list of dictionaries containing the data to be converted.</param>
         /// <returns>A DataTable containing the data from the input list.</returns>
-        private DataTable ConvertToDataTable(List<Dictionary<string, object>> data)
+        private DataTable ConvertToDataTable(List<Dictionary<string, string>> data)
         {
             DataTable dataTable = new DataTable();
 
@@ -210,7 +210,7 @@ namespace Role_Switcher
         /// </summary>
         /// <param name="data">A list of dictionaries containing the data to extract columns from.</param>
         /// <param name="dataTable">The DataTable to add columns to.</param>
-        private void AddColumnsToDataTable(List<Dictionary<string, object>> data, DataTable dataTable)
+        private void AddColumnsToDataTable(List<Dictionary<string, string>> data, DataTable dataTable)
         {
             // Get a distinct list of all keys from the provided data, to be used as column names.
             var allKeys = data.SelectMany(dict => dict.Keys).Distinct().ToList();
@@ -234,7 +234,7 @@ namespace Role_Switcher
         /// </summary>
         /// <param name="data">A list of dictionaries containing the data to be converted.</param>
         /// <param name="dataTable">The DataTable to add rows to.</param>
-        private void AddRowsToDataTable(List<Dictionary<string, object>> data, DataTable dataTable)
+        private void AddRowsToDataTable(List<Dictionary<string, string>> data, DataTable dataTable)
         {
             // Add data to the DataTable.
             foreach (var dict in data)
@@ -302,7 +302,7 @@ namespace Role_Switcher
         /// <param name="result">Contains the user data to display in the grid.</param>
         private void UpdateUserGrid(EntityCollection result)
         {
-            var data = result.Entities.Select(e => e.Attributes.ToDictionary(a => a.Key, a => a.Value)).ToList();
+            var data = result.Entities.Select(e => e.FormattedValues.ToDictionary(a => a.Key, a => a.Value)).ToList();
             userGrid.DataSource = ConvertToDataTable(data);
             userGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
         }
