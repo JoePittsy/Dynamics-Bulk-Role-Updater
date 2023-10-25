@@ -577,6 +577,7 @@ namespace Role_Switcher
         {
             applyButton.Enabled = true;
             ClearRoleCollections();
+            ClearUsers();
 
             SaveSettings();
             base.UpdateConnection(newService, detail, actionName, parameter);
@@ -595,6 +596,15 @@ namespace Role_Switcher
             RolesToApply.Clear();
             AssignedRoles.Clear();
             UnassignedRoles.Clear();
+        }
+
+        /// <summary>
+        /// Clears the User Datagrid view and UsersToEdit selection.
+        /// </summary>
+        private void ClearUsers()
+        {
+            UpdateUserGrid(new EntityCollection());
+            UsersToEdit.Clear();
         }
 
         /// <summary>
@@ -739,6 +749,8 @@ namespace Role_Switcher
 
             // Refresh the data bindings.
             playlistBindingSource.ResetBindings(false);
+            RolesToApply.ResetBindings();
+            playlistComboBox.SelectedIndex = 0;
 
             // Persist the updated settings.
             SaveSettings();

@@ -115,6 +115,7 @@
             // fetchAllUsersButton
             // 
             this.fetchAllUsersButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.fetchAllUsersButton.Image = global::Role_Switcher.Properties.Resources._8080;
             this.fetchAllUsersButton.Name = "fetchAllUsersButton";
             this.fetchAllUsersButton.Size = new System.Drawing.Size(86, 22);
             this.fetchAllUsersButton.Text = "Fetch all Users";

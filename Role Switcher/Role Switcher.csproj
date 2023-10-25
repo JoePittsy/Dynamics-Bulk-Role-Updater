@@ -255,6 +255,9 @@
       <DependentUpon>RoleSwitcher.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\8080.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>IF $(ConfigurationName) == Debug (
