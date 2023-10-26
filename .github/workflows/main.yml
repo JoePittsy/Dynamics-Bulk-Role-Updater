@@ -42,6 +42,7 @@ jobs:
       run: |
         cd "Role Switcher"
         $releaseNotes = "${{ github.event.pull_request.body }}"
+        $releaseNotes = "<![CDATA[" + $releaseNotes + "]]>"
         nuget pack '.\Role Switcher.nuspec' -Version $env:VERSION_NUMBER -Properties releasenotes="$releaseNotes"
 
     - name: Create GitHub Release
