@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>DynamicsBulkRoleUpdater</id>
+    <title>Dynamics Bulk Role Updater</title>
+    <authors>Joseph Pitts</authors>
+    <owners></owners>
+    <version>$version$</version>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/JoePittsy/Dynamics-Bulk-Role-Updater</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/JoePittsy/Dynamics-Bulk-Role-Updater/2b5fe9ef40bdfbd2b218f063de033c2702f92699/logo.png</iconUrl>
+    <description>Create sets of roles and apply them to users with 1 click!</description>
+    <summary>Create sets of roles and apply them to users with 1 click!</summary>
+    <language>en-GB</language>
+    <tags>XrmToolBox DynamicsBulkRoleUpdater</tags>
+    <releaseNotes>$releasenotes$</releaseNotes>
+    <dependencies>
+      <dependency id="XrmToolBox" version="1.2022.2.54" />
+    </dependencies>
+  </metadata>
+   <files>
+       <file src="bin\Release\DynamicsBulkRoleUpdater.dll" target="lib\net48\Plugins" />
+    </files>
+</package>

@@ -1,0 +1,83 @@
+name: Generate NuGet Package on PR into Main Complete!
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+
+  print_context:
+    runs-on: windows-latest
+    steps:
+      - env:
+          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+        run: |
+          echo $EVENT_CONTEXT
+          
+  build-and-pack:
+    # Ensure the job runs only on merged PRs
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+    permissions: write-all
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      
+    - name: Restore NuGet packages
+      run: |
+        cd "Role Switcher"
+        nuget restore "Role Switcher.sln"
+      
+    - name: Build the project
+      run: |
+        cd "Role Switcher"
+        msbuild '.\Role Switcher.sln' /p:Configuration=Release
+
+    - name: Run GetVersionNumber script
+      shell: pwsh
+      run: |
+        cd "Role Switcher"
+        $version = .\GetVersionNumber.ps1 -dllPath ".\bin\Release\DynamicsBulkRoleUpdater.dll"
+        echo "VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
+    - name: Pack with NuGet
+      run: |
+        cd "Role Switcher"
+        $releaseNotes = "${{ github.event.pull_request.body }}"
+        nuget pack '.\Role Switcher.nuspec' -Version $env:VERSION_NUMBER -Properties releasenotes="$releaseNotes"
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.VERSION_NUMBER }}
+        release_name: Release ${{ env.VERSION_NUMBER }}
+        body: ${{ github.event.pull_request.body }}
+        draft: true
+        prerelease: false
+
+    - name: Trim Version Number
+      run: |
+        $trimmedVersion = "${{ env.VERSION_NUMBER }}".TrimEnd('.0')
+        echo "TRIMMED_VERSION=$trimmedVersion" >> $env:GITHUB_ENV
+    
+
+    - name: Upload NuGet package to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Role Switcher/DynamicsBulkRoleUpdater.${{ env.TRIMMED_VERSION }}.nupkg
+        asset_name: DynamicsBulkRoleUpdater.${{ env.TRIMMED_VERSION }}.nupkg
+        asset_content_type: application/octet-stream
+
