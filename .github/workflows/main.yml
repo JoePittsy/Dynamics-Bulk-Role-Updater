@@ -1,4 +1,4 @@
-name: Generate NuGet Package on PR into Main Complete
+name: Generate NuGet Package on PR into Main Complete!
 
 on:
   pull_request:
