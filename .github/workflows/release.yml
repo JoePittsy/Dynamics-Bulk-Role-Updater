@@ -1,8 +1,9 @@
 name: Publish to NuGet
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - '*'
 
 jobs:
   publish:
@@ -15,11 +16,11 @@ jobs:
     - name: Install jq
       run: sudo apt-get install jq
 
-    - name: Get asset from the release
+    - name: Get .nupkg asset from the release
       run: |
         ASSET_URL=$(curl -sH "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
-          jq -r ".assets[0].browser_download_url")
+          jq -r '.assets[] | select(.name | endswith(".nupkg")).browser_download_url')
         wget $ASSET_URL
 
     - name: Publish to NuGet
