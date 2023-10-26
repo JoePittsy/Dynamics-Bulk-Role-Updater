@@ -56,13 +56,19 @@ jobs:
         draft: true
         prerelease: false
 
+    - name: Trim Version Number
+      run: |
+        $trimmedVersion = "${{ env.VERSION_NUMBER }}".TrimEnd('.0')
+        echo "TRIMMED_VERSION=$trimmedVersion" >> $GITHUB_ENV
+    
+
     - name: Upload NuGet package to Release
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: "Role Switcher/DynamicsBulkRoleUpdater.${{ env.VERSION_NUMBER }}.nupkg"
-        asset_name: DynamicsBulkRoleUpdater.${{ env.VERSION_NUMBER }}.nupkg
+        asset_path: ./Role Switcher/DynamicsBulkRoleUpdater.${{ env.TRIMMED_VERSION }}.nupkg
+        asset_name: DynamicsBulkRoleUpdater.${{ env.TRIMMED_VERSION }}.nupkg
         asset_content_type: application/octet-stream
 
