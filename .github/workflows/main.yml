@@ -59,7 +59,7 @@ jobs:
     - name: Trim Version Number
       run: |
         $trimmedVersion = "${{ env.VERSION_NUMBER }}".TrimEnd('.0')
-        echo "TRIMMED_VERSION=$trimmedVersion" >> $GITHUB_ENV
+        echo "TRIMMED_VERSION=$trimmedVersion" >> $env:$GITHUB_ENV
     
 
     - name: Upload NuGet package to Release
