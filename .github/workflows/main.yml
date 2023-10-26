@@ -17,13 +17,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # - name: Setup DotNet
-    #   uses: actions/setup-dotnet@v1
-    #   with:
-    #     dotnet-version: '7.0.x'
+    - name: Setup DotNet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '7.0.x'
 
     - name: Restore NuGet packages
-      run: nuget restore "Role Switcher\Role Switcher.sln"
+      run: |
+        cd "Role Switcher"
+        nuget restore "Role Switcher.sln"
       
     - name: Build the project
       run: |
