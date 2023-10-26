@@ -1,13 +1,7 @@
-﻿using NuGet.Packaging;
-using System;
-using System.Collections.Generic;
+﻿using XrmToolBox.Extensibility;
 using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using XrmToolBox.Extensibility;
+using System.Drawing;
 
 namespace Role_Switcher
 {

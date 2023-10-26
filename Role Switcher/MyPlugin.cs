@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using XrmToolBox.Extensibility.Interfaces;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+using System.Collections.Generic;
 using XrmToolBox.Extensibility;
-using XrmToolBox.Extensibility.Interfaces;
+using System.Reflection;
+using System.Linq;
+using System.IO;
+using System;
 
 namespace Role_Switcher
 {

@@ -36,7 +36,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>JosephPitts.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="McTools.Xrm.Connection, Version=1.2023.6.56, Culture=neutral, PublicKeyToken=96037217801d9658, processorArchitecture=MSIL">
@@ -281,7 +282,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="JosephPitts.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\LogMessage.datasource" />
     <None Include="Properties\DataSources\Playlist.datasource" />
@@ -297,6 +297,9 @@
     <EmbeddedResource Include="RoleSwitcher.resx">
       <DependentUpon>RoleSwitcher.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\8080.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
