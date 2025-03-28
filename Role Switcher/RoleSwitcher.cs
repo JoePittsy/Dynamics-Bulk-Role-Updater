@@ -1,9 +1,9 @@
 ﻿using XrmToolBox.Extensibility.Interfaces;
 using System.Collections.Generic;
-using Microsoft.Xrm.Sdk.Messages;
 using XrmToolBox.Extensibility;
 using Microsoft.Xrm.Sdk.Query;
 using McTools.Xrm.Connection;
+using Role_Switcher.Services;
 using System.ComponentModel;
 using System.Windows.Forms;
 using Microsoft.Xrm.Sdk;
@@ -11,7 +11,6 @@ using System.Linq;
 using System.Data;
 using System;
 using System.Text;
-using Role_Switcher.Services;
 
 namespace Role_Switcher
 {
@@ -34,6 +33,8 @@ namespace Role_Switcher
         private List<Guid> UsersToEdit = new List<Guid>();
 
         private RoleService _roleService;
+        private UserGridBuilder _userGridBuilder = new UserGridBuilder();
+        private PlaylistService _playlistService;
 
         public string RepositoryName => "Dynamics-Bulk-Role-Updater";
 
@@ -101,6 +102,7 @@ namespace Role_Switcher
         {
             LoadSettings();
             _roleService = new RoleService(Service, Logger, WorkAsync, m => SetWorkingMessage(m));
+            _playlistService = new PlaylistService(Playlists, EMPTY_PLAYLIST, SaveSettings);
         }
 
         /// <summary>
@@ -183,108 +185,6 @@ namespace Role_Switcher
         }
 
         /// <summary>
-        /// Converts a list of dictionaries into a DataTable.
-        /// </summary>
-        /// <param name="data">A list of dictionaries containing the data to be converted.</param>
-        /// <returns>A DataTable containing the data from the input list.</returns>
-        private DataTable ConvertToDataTable(List<Dictionary<string, object>> data)
-        {
-            DataTable dataTable = new DataTable();
-
-            // Return an empty DataTable if no data is provided.
-            if (data.Count == 0)
-            {
-                return dataTable;
-            }
-
-            // Extract and sanitize column names, then add them to the DataTable.
-            AddColumnsToDataTable(data, dataTable);
-
-            // Add rows to the DataTable.
-            AddRowsToDataTable(data, dataTable);
-
-            return dataTable;
-        }
-
-        /// <summary>
-        /// Adds a column to the DataTable.
-        /// </summary>
-        /// <param name="dataTable">The DataTable to add a column to.</param>
-        /// <param name="columnName">The name of the column to add.</param>
-        private void AddColumn(DataTable dataTable, string columnName)
-        {
-            string sanitizedColumnName = SanitizeColumnName(columnName);
-            Logger.Log(LogLevel.Information, $"Adding {sanitizedColumnName} to the table");
-
-            // Add a new column of type string, with the sanitized name.
-            dataTable.Columns.Add(sanitizedColumnName, typeof(string));
-
-            // Set the caption of the column, which can be used for display purposes.
-            dataTable.Columns[sanitizedColumnName].Caption = columnName;
-        }
-
-        /// <summary>
-        /// Extracts and sanitizes column names, and adds them as columns to the DataTable.
-        /// </summary>
-        /// <param name="data">A list of dictionaries containing the data to extract columns from.</param>
-        /// <param name="dataTable">The DataTable to add columns to.</param>
-        private void AddColumnsToDataTable(List<Dictionary<string, object>> data, DataTable dataTable)
-        {
-            // Get a distinct list of all keys from the provided data, to be used as column names.
-            var allKeys = data.SelectMany(dict => dict.Keys).Distinct().ToList();
-
-            // Ensure systemuserid is the first column if it exists.
-            if (allKeys.Contains("systemuserid"))
-            {
-                AddColumn(dataTable, "systemuserid");
-                allKeys.Remove("systemuserid");
-            }
-
-            // Ensure fullname is the second column if it exists.
-            if (allKeys.Contains("fullname"))
-            {
-                AddColumn(dataTable, "fullname");
-                allKeys.Remove("fullname");
-            }
-
-            // Add columns to the DataTable.
-            foreach (var key in allKeys) AddColumn(dataTable, key);
-        }
-
-        /// <summary>
-        /// Adds rows to the DataTable based on the provided data.
-        /// </summary>
-        /// <param name="data">A list of dictionaries containing the data to be converted.</param>
-        /// <param name="dataTable">The DataTable to add rows to.</param>
-        private void AddRowsToDataTable(List<Dictionary<string, object>> data, DataTable dataTable)
-        {
-            // Add data to the DataTable.
-            foreach (var dict in data)
-            {
-                DataRow row = dataTable.NewRow();
-
-                // Populate the row with data from the dictionary.
-                foreach (var key in dict.Keys)
-                {
-                    string sanitizedColumnName = SanitizeColumnName(key);
-                    row[sanitizedColumnName] = dict[key]?.ToString() ?? string.Empty;
-                }
-
-                dataTable.Rows.Add(row);
-            }
-        }
-
-        /// <summary>
-        /// Sanitizes a column name by replacing problematic characters.
-        /// </summary>
-        /// <param name="columnName">The original column name to sanitize.</param>
-        /// <returns>The sanitized column name.</returns>
-        private string SanitizeColumnName(string columnName)
-        {
-            return columnName.Replace(".", "_");
-        }
-
-        /// <summary>
         /// Initializes the components related to the DataGridView and its search functionality.
         /// </summary>
         private void InitializeUserGrid()
@@ -307,7 +207,7 @@ namespace Role_Switcher
                 if (char.IsLetterOrDigit(e.KeyChar) || char.IsWhiteSpace(e.KeyChar))
                 {
                     SearchText.Append(e.KeyChar);
-                    SearchGrid();
+                    _userGridBuilder.SearchGrid(userGrid, SearchText.ToString());
                     ResetSearchTimer();
                 }
             }
@@ -315,26 +215,6 @@ namespace Role_Switcher
             {
                 // Handle or log the exception as per your application's guidelines.
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        /// <summary>
-        /// Searches the DataGridView based on the accumulated search text and sets focus to the closest match.
-        /// </summary>
-        private void SearchGrid()
-        {
-            if (SearchText.Length <= 0) return;
-
-            string searchValue = SearchText.ToString().ToLower();
-
-            // Assuming the first column as the primary search column; adjust as necessary
-            foreach (DataGridViewRow row in userGrid.Rows)
-            {
-                if (row.Cells[1].Value?.ToString().ToLower().StartsWith(searchValue) == true)
-                {
-                    userGrid.CurrentCell = row.Cells[0];
-                    break;
-                }
             }
         }
 
@@ -397,15 +277,7 @@ namespace Role_Switcher
         /// <param name="result">Contains the user data to display in the grid.</param>
         private void UpdateUserGrid(EntityCollection result)
         {
-            var data = result.Entities.Select(e =>
-                    e.Attributes.ToDictionary(
-                        a => a.Key,
-                        a => e.FormattedValues.ContainsKey(a.Key)
-                            ? (object)e.FormattedValues[a.Key]
-                            : a.Value
-                    )
-                ).ToList();
-            userGrid.DataSource = ConvertToDataTable(data);
+            userGrid.DataSource = _userGridBuilder.BuildUserTable(result.Entities);
             userGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
         }
 
@@ -415,7 +287,7 @@ namespace Role_Switcher
         private void GetAllUsers()
         {
             // Utilizing FetchUsers and providing a method for retrieving all users using QueryExpression.
-            FetchUsers(service => service.RetrieveMultiple(new QueryExpression("systemuser") { ColumnSet = new ColumnSet("fullname") }));
+            FetchUsers(service => service.RetrieveMultiple(new QueryExpression("systemuser") { ColumnSet = new ColumnSet("firstname", "lastname") }));
         }
 
         /// <summary>
@@ -648,21 +520,6 @@ namespace Role_Switcher
         #region Playlist Specific Methods
 
         /// <summary>
-        /// Generates a unique Guid that is not already used as an ID in the Playlists.
-        /// </summary>
-        /// <returns>A unique Guid not present in the Playlists.</returns>
-        /// <remarks>
-        /// The method recursively calls itself if a generated Guid is already present in the Playlists,
-        /// ensuring the returned Guid is unique among them.
-        /// </remarks>
-        private Guid GenerateGuid()
-        {
-            Guid guid = Guid.NewGuid();
-            if (Playlists.Any(p => p.Id == guid)) return GenerateGuid();
-            return guid;
-        }
-
-        /// <summary>
         /// Handles the click event of the newPlaylist button.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -673,15 +530,8 @@ namespace Role_Switcher
         /// </remarks>
         private void newPlaylist_Click(object sender, EventArgs e)
         {
-            var newPlaylist = new Playlist()
-            {
-                Name = "New Playlist",
-                Id = GenerateGuid(),
-                Roles = new List<string>()
-            };
+            var newPlaylist = _playlistService.CreateNewPlaylist();
             editPlaylistName.Text = newPlaylist.Name;
-            Playlists.Add(newPlaylist);
-            SaveSettings();
             editPlaylistComboBox.SelectedItem = newPlaylist;
         }
 
@@ -698,19 +548,15 @@ namespace Role_Switcher
         /// </remarks>
         private void deleteButton_Click(object sender, EventArgs e)
         {
-            Playlist selectedPlaylist = (Playlist)editPlaylistComboBox.SelectedItem;
-            if (selectedPlaylist == null || selectedPlaylist == EMPTY_PLAYLIST) return;
+            var selected = (Playlist)editPlaylistComboBox.SelectedItem;
+            var result = MessageBox.Show($"Are you sure you want to delete {selected.Name}? \n This action is irreversible",
+                             "Are you Sure?",
+                             MessageBoxButtons.OKCancel,
+                             MessageBoxIcon.Question);
 
-            var result = MessageBox.Show($"Are you sure you want to delete {selectedPlaylist.Name}? \n This action is irreversible",
-                                         "Are you Sure?",
-                                         MessageBoxButtons.OKCancel,
-                                         MessageBoxIcon.Question);
-
-            if (result == DialogResult.OK)
+            if (result == DialogResult.OK && _playlistService.TryDeletePlaylist(selected))
             {
-                Playlists.Remove(selectedPlaylist);
                 editPlaylistComboBox.SelectedItem = EMPTY_PLAYLIST;
-                SaveSettings();
             }
         }
 
@@ -727,18 +573,12 @@ namespace Role_Switcher
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void savePlaylist_Click(object sender, EventArgs e)
         {
-            // Retrieve the selected playlist and update its properties.
-            Playlist selectedPlaylist = (Playlist)editPlaylistComboBox.SelectedItem;
-            selectedPlaylist.Name = editPlaylistName.Text;
-            selectedPlaylist.Roles = AssignedRoles.ToList();
+            var selected = (Playlist)editPlaylistComboBox.SelectedItem;
+            _playlistService.UpdatePlaylist(selected, editPlaylistName.Text, AssignedRoles);
 
-            // Refresh the data bindings.
             playlistBindingSource.ResetBindings(false);
             RolesToApply.ResetBindings();
             playlistComboBox.SelectedIndex = 0;
-
-            // Persist the updated settings.
-            SaveSettings();
         }
 
         /// <summary>
@@ -849,28 +689,8 @@ namespace Role_Switcher
             if (ConfirmRoleApplication(users.Count, playlist.Name, replaceRoles) == DialogResult.Cancel)
                 return;
 
-            var userGuids = ExtractUserIds(users);
+            var userGuids = _userGridBuilder.ExtractUserIds(userGrid);
             _roleService.ApplyRolesToUsers(userGuids, playlist.Roles, replaceRoles);
-        }
-
-        /// <summary>
-        /// Extracts and logs user IDs from the grid selection, adding them to the usersToEdit list.
-        /// </summary>
-        /// <param name="users">The selected users in the grid.</param>
-        private List<Guid> ExtractUserIds(DataGridViewSelectedRowCollection users)
-        {
-            var ids = new List<Guid>();
-            int idColumnIndex = userGrid.Columns.IndexOf(userGrid.Columns["systemuserid"]);
-
-            foreach (DataGridViewRow user in users)
-            {
-                var id = (string)user.Cells[idColumnIndex].Value;
-                if (id == null) continue;
-                Logger.Log(LogLevel.Information, $"User ID: {id}");
-                ids.Add(new Guid(id));
-            }
-
-            return ids;
         }
 
         /// <summary>
