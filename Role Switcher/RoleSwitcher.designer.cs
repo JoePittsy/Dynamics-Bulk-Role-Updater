@@ -43,11 +43,13 @@ namespace Role_Switcher
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.playlistComboBox = new System.Windows.Forms.ComboBox();
             this.playlistBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.playlistRoles = new System.Windows.Forms.ListBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.applyButton = new System.Windows.Forms.Button();
-            this.removeRolesCheck = new System.Windows.Forms.CheckBox();
+            this.tabControl2 = new System.Windows.Forms.TabControl();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.playlistRoles = new System.Windows.Forms.ListBox();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.playlistTeams = new System.Windows.Forms.ListBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -65,17 +67,19 @@ namespace Role_Switcher
             this.unassingedRolesList = new System.Windows.Forms.ListBox();
             this.unassignedTeamsGroupBox = new System.Windows.Forms.GroupBox();
             this.unasssignedTeamsList = new System.Windows.Forms.ListBox();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.assignedRolesGroupBox = new System.Windows.Forms.GroupBox();
+            this.assignedRolesList = new System.Windows.Forms.ListBox();
+            this.assignedTeamsGroupBox = new System.Windows.Forms.GroupBox();
+            this.assignedTeamsList = new System.Windows.Forms.ListBox();
             this.Logs = new System.Windows.Forms.GroupBox();
             this.logBox = new System.Windows.Forms.ListBox();
             this.logMessageBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorker3 = new System.ComponentModel.BackgroundWorker();
-            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
-            this.assignedRolesGroupBox = new System.Windows.Forms.GroupBox();
-            this.assignedRolesList = new System.Windows.Forms.ListBox();
-            this.assignedTeamsGroupBox = new System.Windows.Forms.GroupBox();
-            this.assginedTeamsList = new System.Windows.Forms.ListBox();
+            this.removeRolesCheck = new System.Windows.Forms.CheckBox();
+            this.removeTeamsCheck = new System.Windows.Forms.CheckBox();
             this.toolStripMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
@@ -91,8 +95,10 @@ namespace Role_Switcher
             this.tableLayoutPanel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.playlistBindingSource)).BeginInit();
-            this.groupBox2.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            this.tabControl2.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -104,14 +110,14 @@ namespace Role_Switcher
             this.splitContainer1.SuspendLayout();
             this.unassignedRolesGroupBox.SuspendLayout();
             this.unassignedTeamsGroupBox.SuspendLayout();
-            this.Logs.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.logMessageBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
             this.splitContainer3.Panel1.SuspendLayout();
             this.splitContainer3.Panel2.SuspendLayout();
             this.splitContainer3.SuspendLayout();
             this.assignedRolesGroupBox.SuspendLayout();
             this.assignedTeamsGroupBox.SuspendLayout();
+            this.Logs.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.logMessageBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // toolStripMenu
@@ -124,7 +130,7 @@ namespace Role_Switcher
             this.toggleLogsButton});
             this.toolStripMenu.Location = new System.Drawing.Point(0, 0);
             this.toolStripMenu.Name = "toolStripMenu";
-            this.toolStripMenu.Size = new System.Drawing.Size(905, 25);
+            this.toolStripMenu.Size = new System.Drawing.Size(1397, 25);
             this.toolStripMenu.TabIndex = 4;
             this.toolStripMenu.Text = "toolStrip1";
             // 
@@ -178,7 +184,7 @@ namespace Role_Switcher
             this.splitContainer.Panel2.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.splitContainer.Panel2Collapsed = true;
             this.splitContainer.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.splitContainer.Size = new System.Drawing.Size(905, 512);
+            this.splitContainer.Size = new System.Drawing.Size(1397, 809);
             this.splitContainer.SplitterDistance = 286;
             this.splitContainer.TabIndex = 5;
             // 
@@ -190,7 +196,7 @@ namespace Role_Switcher
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(905, 512);
+            this.tabControl1.Size = new System.Drawing.Size(1397, 809);
             this.tabControl1.TabIndex = 6;
             // 
             // tabPage1
@@ -199,7 +205,7 @@ namespace Role_Switcher
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(897, 486);
+            this.tabPage1.Size = new System.Drawing.Size(1389, 783);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Assign Roles";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -217,8 +223,8 @@ namespace Role_Switcher
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.tableLayoutPanel1);
-            this.splitContainer2.Size = new System.Drawing.Size(891, 480);
-            this.splitContainer2.SplitterDistance = 534;
+            this.splitContainer2.Size = new System.Drawing.Size(1383, 777);
+            this.splitContainer2.SplitterDistance = 828;
             this.splitContainer2.TabIndex = 1;
             // 
             // userGrid
@@ -230,7 +236,7 @@ namespace Role_Switcher
             this.userGrid.Name = "userGrid";
             this.userGrid.ReadOnly = true;
             this.userGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.userGrid.Size = new System.Drawing.Size(534, 480);
+            this.userGrid.Size = new System.Drawing.Size(828, 777);
             this.userGrid.TabIndex = 0;
             // 
             // tableLayoutPanel1
@@ -238,16 +244,16 @@ namespace Role_Switcher
             this.tableLayoutPanel1.ColumnCount = 1;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Controls.Add(this.groupBox1, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.groupBox2, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.tabControl2, 0, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 3;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(353, 480);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 82F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(551, 777);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // groupBox1
@@ -256,10 +262,10 @@ namespace Role_Switcher
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(347, 44);
+            this.groupBox1.Size = new System.Drawing.Size(545, 44);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Role Sets";
+            this.groupBox1.Text = "Playlists";
             // 
             // playlistComboBox
             // 
@@ -269,7 +275,7 @@ namespace Role_Switcher
             this.playlistComboBox.FormattingEnabled = true;
             this.playlistComboBox.Location = new System.Drawing.Point(3, 16);
             this.playlistComboBox.Name = "playlistComboBox";
-            this.playlistComboBox.Size = new System.Drawing.Size(341, 21);
+            this.playlistComboBox.Size = new System.Drawing.Size(539, 21);
             this.playlistComboBox.TabIndex = 0;
             this.playlistComboBox.SelectedIndexChanged += new System.EventHandler(this.playlistComboBox_SelectedIndexChanged);
             // 
@@ -277,66 +283,89 @@ namespace Role_Switcher
             // 
             this.playlistBindingSource.DataSource = typeof(Role_Switcher.Playlist);
             // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.playlistRoles);
-            this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox2.Location = new System.Drawing.Point(3, 53);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(347, 384);
-            this.groupBox2.TabIndex = 1;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Roles to Apply";
-            // 
-            // playlistRoles
-            // 
-            this.playlistRoles.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.playlistRoles.FormattingEnabled = true;
-            this.playlistRoles.Location = new System.Drawing.Point(3, 16);
-            this.playlistRoles.Name = "playlistRoles";
-            this.playlistRoles.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.playlistRoles.Size = new System.Drawing.Size(341, 365);
-            this.playlistRoles.Sorted = true;
-            this.playlistRoles.TabIndex = 0;
-            // 
             // tableLayoutPanel2
             // 
             this.tableLayoutPanel2.ColumnCount = 2;
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel2.Controls.Add(this.removeTeamsCheck, 0, 1);
             this.tableLayoutPanel2.Controls.Add(this.applyButton, 1, 0);
             this.tableLayoutPanel2.Controls.Add(this.removeRolesCheck, 0, 0);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 443);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 698);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 34F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(347, 34);
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 34F));
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(545, 76);
             this.tableLayoutPanel2.TabIndex = 2;
             // 
             // applyButton
             // 
             this.applyButton.Dock = System.Windows.Forms.DockStyle.Fill;
             this.applyButton.Enabled = false;
-            this.applyButton.Location = new System.Drawing.Point(176, 3);
+            this.applyButton.Location = new System.Drawing.Point(275, 3);
             this.applyButton.Name = "applyButton";
-            this.applyButton.Size = new System.Drawing.Size(168, 28);
+            this.applyButton.Size = new System.Drawing.Size(267, 28);
             this.applyButton.TabIndex = 0;
-            this.applyButton.Text = "Apply Roles";
+            this.applyButton.Text = "Apply Playlist";
             this.applyButton.UseVisualStyleBackColor = true;
             this.applyButton.Click += new System.EventHandler(this.applyButton_Click);
             // 
-            // removeRolesCheck
+            // tabControl2
             // 
-            this.removeRolesCheck.AutoSize = true;
-            this.removeRolesCheck.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.removeRolesCheck.Location = new System.Drawing.Point(3, 14);
-            this.removeRolesCheck.Name = "removeRolesCheck";
-            this.removeRolesCheck.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.removeRolesCheck.Size = new System.Drawing.Size(167, 17);
-            this.removeRolesCheck.TabIndex = 1;
-            this.removeRolesCheck.Text = "Remove users existing roles";
-            this.removeRolesCheck.UseVisualStyleBackColor = true;
+            this.tabControl2.Controls.Add(this.tabPage3);
+            this.tabControl2.Controls.Add(this.tabPage4);
+            this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl2.Location = new System.Drawing.Point(3, 53);
+            this.tabControl2.Name = "tabControl2";
+            this.tabControl2.SelectedIndex = 0;
+            this.tabControl2.Size = new System.Drawing.Size(545, 639);
+            this.tabControl2.TabIndex = 3;
+            // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.playlistRoles);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(537, 613);
+            this.tabPage3.TabIndex = 0;
+            this.tabPage3.Text = "Roles to Apply";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // playlistRoles
+            // 
+            this.playlistRoles.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.playlistRoles.FormattingEnabled = true;
+            this.playlistRoles.Location = new System.Drawing.Point(3, 3);
+            this.playlistRoles.Name = "playlistRoles";
+            this.playlistRoles.SelectionMode = System.Windows.Forms.SelectionMode.None;
+            this.playlistRoles.Size = new System.Drawing.Size(531, 607);
+            this.playlistRoles.Sorted = true;
+            this.playlistRoles.TabIndex = 1;
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.playlistTeams);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(339, 358);
+            this.tabPage4.TabIndex = 1;
+            this.tabPage4.Text = "Teams to Join";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // playlistTeams
+            // 
+            this.playlistTeams.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.playlistTeams.FormattingEnabled = true;
+            this.playlistTeams.Location = new System.Drawing.Point(3, 3);
+            this.playlistTeams.Name = "playlistTeams";
+            this.playlistTeams.SelectionMode = System.Windows.Forms.SelectionMode.None;
+            this.playlistTeams.Size = new System.Drawing.Size(333, 352);
+            this.playlistTeams.Sorted = true;
+            this.playlistTeams.TabIndex = 2;
             // 
             // tabPage2
             // 
@@ -530,6 +559,7 @@ namespace Role_Switcher
             this.unassingedRolesList.Size = new System.Drawing.Size(396, 115);
             this.unassingedRolesList.Sorted = true;
             this.unassingedRolesList.TabIndex = 1;
+            this.unassingedRolesList.SelectedIndexChanged += new System.EventHandler(this.unassingedRolesList_SelectedIndexChanged);
             // 
             // unassignedTeamsGroupBox
             // 
@@ -548,36 +578,11 @@ namespace Role_Switcher
             this.unasssignedTeamsList.FormattingEnabled = true;
             this.unasssignedTeamsList.Location = new System.Drawing.Point(3, 16);
             this.unasssignedTeamsList.Name = "unasssignedTeamsList";
+            this.unasssignedTeamsList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.unasssignedTeamsList.Size = new System.Drawing.Size(396, 237);
+            this.unasssignedTeamsList.Sorted = true;
             this.unasssignedTeamsList.TabIndex = 0;
-            // 
-            // Logs
-            // 
-            this.Logs.AutoSize = true;
-            this.Logs.Controls.Add(this.logBox);
-            this.Logs.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.Logs.Location = new System.Drawing.Point(0, 0);
-            this.Logs.Name = "Logs";
-            this.Logs.Size = new System.Drawing.Size(150, 46);
-            this.Logs.TabIndex = 0;
-            this.Logs.TabStop = false;
-            this.Logs.Text = "Logs";
-            // 
-            // logBox
-            // 
-            this.logBox.DataSource = this.logMessageBindingSource;
-            this.logBox.DisplayMember = "Message";
-            this.logBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.logBox.FormattingEnabled = true;
-            this.logBox.Location = new System.Drawing.Point(3, 16);
-            this.logBox.Name = "logBox";
-            this.logBox.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.logBox.Size = new System.Drawing.Size(144, 27);
-            this.logBox.TabIndex = 0;
-            // 
-            // logMessageBindingSource
-            // 
-            this.logMessageBindingSource.DataSource = typeof(Role_Switcher.LogMessage);
+            this.unasssignedTeamsList.SelectedIndexChanged += new System.EventHandler(this.unasssignedTeamsList_SelectedIndexChanged);
             // 
             // splitContainer3
             // 
@@ -618,10 +623,11 @@ namespace Role_Switcher
             this.assignedRolesList.Size = new System.Drawing.Size(396, 115);
             this.assignedRolesList.Sorted = true;
             this.assignedRolesList.TabIndex = 1;
+            this.assignedRolesList.SelectedIndexChanged += new System.EventHandler(this.assignedRolesList_SelectedIndexChanged);
             // 
             // assignedTeamsGroupBox
             // 
-            this.assignedTeamsGroupBox.Controls.Add(this.assginedTeamsList);
+            this.assignedTeamsGroupBox.Controls.Add(this.assignedTeamsList);
             this.assignedTeamsGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.assignedTeamsGroupBox.Location = new System.Drawing.Point(0, 0);
             this.assignedTeamsGroupBox.Name = "assignedTeamsGroupBox";
@@ -630,14 +636,69 @@ namespace Role_Switcher
             this.assignedTeamsGroupBox.TabStop = false;
             this.assignedTeamsGroupBox.Text = "Assigned Teams";
             // 
-            // assginedTeamsList
+            // assignedTeamsList
             // 
-            this.assginedTeamsList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.assginedTeamsList.FormattingEnabled = true;
-            this.assginedTeamsList.Location = new System.Drawing.Point(3, 16);
-            this.assginedTeamsList.Name = "assginedTeamsList";
-            this.assginedTeamsList.Size = new System.Drawing.Size(396, 237);
-            this.assginedTeamsList.TabIndex = 0;
+            this.assignedTeamsList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.assignedTeamsList.FormattingEnabled = true;
+            this.assignedTeamsList.Location = new System.Drawing.Point(3, 16);
+            this.assignedTeamsList.Name = "assignedTeamsList";
+            this.assignedTeamsList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.assignedTeamsList.Size = new System.Drawing.Size(396, 237);
+            this.assignedTeamsList.Sorted = true;
+            this.assignedTeamsList.TabIndex = 0;
+            this.assignedTeamsList.SelectedIndexChanged += new System.EventHandler(this.assignedTeamsList_SelectedIndexChanged);
+            // 
+            // Logs
+            // 
+            this.Logs.AutoSize = true;
+            this.Logs.Controls.Add(this.logBox);
+            this.Logs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Logs.Location = new System.Drawing.Point(0, 0);
+            this.Logs.Name = "Logs";
+            this.Logs.Size = new System.Drawing.Size(150, 46);
+            this.Logs.TabIndex = 0;
+            this.Logs.TabStop = false;
+            this.Logs.Text = "Logs";
+            // 
+            // logBox
+            // 
+            this.logBox.DataSource = this.logMessageBindingSource;
+            this.logBox.DisplayMember = "Message";
+            this.logBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.logBox.FormattingEnabled = true;
+            this.logBox.Location = new System.Drawing.Point(3, 16);
+            this.logBox.Name = "logBox";
+            this.logBox.SelectionMode = System.Windows.Forms.SelectionMode.None;
+            this.logBox.Size = new System.Drawing.Size(144, 27);
+            this.logBox.TabIndex = 0;
+            // 
+            // logMessageBindingSource
+            // 
+            this.logMessageBindingSource.DataSource = typeof(Role_Switcher.LogMessage);
+            // 
+            // removeRolesCheck
+            // 
+            this.removeRolesCheck.AutoSize = true;
+            this.removeRolesCheck.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.removeRolesCheck.Location = new System.Drawing.Point(3, 14);
+            this.removeRolesCheck.Name = "removeRolesCheck";
+            this.removeRolesCheck.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.removeRolesCheck.Size = new System.Drawing.Size(266, 17);
+            this.removeRolesCheck.TabIndex = 1;
+            this.removeRolesCheck.Text = "Remove users existing roles";
+            this.removeRolesCheck.UseVisualStyleBackColor = true;
+            // 
+            // removeTeamsCheck
+            // 
+            this.removeTeamsCheck.AutoSize = true;
+            this.removeTeamsCheck.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.removeTeamsCheck.Location = new System.Drawing.Point(3, 56);
+            this.removeTeamsCheck.Name = "removeTeamsCheck";
+            this.removeTeamsCheck.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.removeTeamsCheck.Size = new System.Drawing.Size(266, 17);
+            this.removeTeamsCheck.TabIndex = 2;
+            this.removeTeamsCheck.Text = "Remove users existing teams";
+            this.removeTeamsCheck.UseVisualStyleBackColor = true;
             // 
             // RoleSwitcher
             // 
@@ -646,7 +707,7 @@ namespace Role_Switcher
             this.Controls.Add(this.splitContainer);
             this.Controls.Add(this.toolStripMenu);
             this.Name = "RoleSwitcher";
-            this.Size = new System.Drawing.Size(905, 537);
+            this.Size = new System.Drawing.Size(1397, 834);
             this.Load += new System.EventHandler(this.MyPluginControl_Load);
             this.toolStripMenu.ResumeLayout(false);
             this.toolStripMenu.PerformLayout();
@@ -665,9 +726,11 @@ namespace Role_Switcher
             this.tableLayoutPanel1.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.playlistBindingSource)).EndInit();
-            this.groupBox2.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
+            this.tabControl2.ResumeLayout(false);
+            this.tabPage3.ResumeLayout(false);
+            this.tabPage4.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tableLayoutPanel3.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
@@ -680,14 +743,14 @@ namespace Role_Switcher
             this.splitContainer1.ResumeLayout(false);
             this.unassignedRolesGroupBox.ResumeLayout(false);
             this.unassignedTeamsGroupBox.ResumeLayout(false);
-            this.Logs.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.logMessageBindingSource)).EndInit();
             this.splitContainer3.Panel1.ResumeLayout(false);
             this.splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
             this.splitContainer3.ResumeLayout(false);
             this.assignedRolesGroupBox.ResumeLayout(false);
             this.assignedTeamsGroupBox.ResumeLayout(false);
+            this.Logs.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.logMessageBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -712,11 +775,8 @@ namespace Role_Switcher
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ComboBox playlistComboBox;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.ListBox playlistRoles;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.Button applyButton;
-        private System.Windows.Forms.CheckBox removeRolesCheck;
         private System.Windows.Forms.ToolStripButton toggleLogsButton;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
         private System.Windows.Forms.GroupBox groupBox3;
@@ -740,6 +800,13 @@ namespace Role_Switcher
         private System.Windows.Forms.GroupBox assignedRolesGroupBox;
         private System.Windows.Forms.ListBox assignedRolesList;
         private System.Windows.Forms.GroupBox assignedTeamsGroupBox;
-        private System.Windows.Forms.ListBox assginedTeamsList;
+        private System.Windows.Forms.ListBox assignedTeamsList;
+        private System.Windows.Forms.TabControl tabControl2;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.ListBox playlistRoles;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.ListBox playlistTeams;
+        private System.Windows.Forms.CheckBox removeTeamsCheck;
+        private System.Windows.Forms.CheckBox removeRolesCheck;
     }
 }

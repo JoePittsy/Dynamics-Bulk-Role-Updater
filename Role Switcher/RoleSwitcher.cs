@@ -16,16 +16,23 @@ namespace Role_Switcher
 {
     public partial class RoleSwitcher : PluginControlBase, IMessageBusHost, IGitHubPlugin, IAboutPlugin
     {
-        private static readonly Playlist EMPTY_PLAYLIST = new Playlist { Id = Guid.Empty, Name = string.Empty, Roles = new List<string>(0) };
+        private static readonly Playlist EMPTY_PLAYLIST = new Playlist { Id = Guid.Empty, Name = string.Empty, Roles = new List<string>(0), Teams = new List<string>(0) };
 
         private Settings Settings;
         private RSLogManager Logger;
 
         private BindingList<Playlist> Playlists = new BindingList<Playlist>() { EMPTY_PLAYLIST };
+
         private List<string> AllRoles = new List<string>();
         private BindingList<string> RolesToApply = new BindingList<string>();
         private BindingList<string> AssignedRoles = new BindingList<string>();
         private BindingList<string> UnassignedRoles = new BindingList<string>();
+
+        private List<string> AllTeams = new List<string>();
+        private BindingList<string> TeamsToApply = new BindingList<string>();
+        private BindingList<string> AssignedTeams = new BindingList<string>();
+        private BindingList<string> UnassignedTeams = new BindingList<string>();
+
         private StringBuilder SearchText = new StringBuilder();
         private Timer SearchTimer = new Timer();
         private bool LogsOpen = false;
@@ -35,6 +42,7 @@ namespace Role_Switcher
         private RoleService _roleService;
         private UserGridBuilder _userGridBuilder = new UserGridBuilder();
         private PlaylistService _playlistService;
+        private TeamsService _teamsService;
 
         public string RepositoryName => "Dynamics-Bulk-Role-Updater";
 
@@ -89,8 +97,11 @@ namespace Role_Switcher
         {
             playlistBindingSource.DataSource = Playlists;
             assignedRolesList.DataSource = AssignedRoles;
+            assignedTeamsList.DataSource = AssignedTeams;
+            unasssignedTeamsList.DataSource = UnassignedTeams;
             unassingedRolesList.DataSource = UnassignedRoles;
             playlistRoles.DataSource = RolesToApply;
+            playlistTeams.DataSource = TeamsToApply;
         }
 
         /// <summary>
@@ -101,8 +112,6 @@ namespace Role_Switcher
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
             LoadSettings();
-            _roleService = new RoleService(Service, Logger, WorkAsync, m => SetWorkingMessage(m));
-            _playlistService = new PlaylistService(Playlists, EMPTY_PLAYLIST, SaveSettings);
         }
 
         /// <summary>
@@ -305,71 +314,19 @@ namespace Role_Switcher
         /// </summary>
         private void GetRoles()
         {
-            FetchEntities("Fetching all roles...",
-            service =>
+            _roleService.FetchAllRoleNamesFromDefaultBU((allRoles) =>
             {
-                var defaultBuQuery = new QueryExpression("businessunit")
-                {
-                    ColumnSet = new ColumnSet("businessunitid"),
-                    Criteria = new FilterExpression
-                    {
-                        Conditions =
-                        {
-                    new ConditionExpression("parentbusinessunitid", ConditionOperator.Null)
-                        }
-                    }
-                };
-                var defaultBu = service.RetrieveMultiple(defaultBuQuery).Entities.First().Id;
-
-                var roleQuery = new QueryExpression("role")
-                {
-                    ColumnSet = new ColumnSet("name"),
-                    Criteria = new FilterExpression
-                    {
-                        Conditions =
-                        {
-                    new ConditionExpression("businessunitid", ConditionOperator.Equal, defaultBu)
-                        }
-                    }
-                };
-
-                return service.RetrieveMultiple(roleQuery);
-            },
-            ProcessFetchedRoles);
+                AllRoles = allRoles;
+                Logger.Log(LogLevel.Information, $"Found {allRoles.Count} roles");
+            });
         }
 
-        /// <summary>
-        /// Processes and logs the fetched roles, updating a collection with the results.
-        /// </summary>
-        /// <param name="args">Contains the results of the asynchronous operation.</param>
-        private void ProcessFetchedRoles(RunWorkerCompletedEventArgs args)
+        private void GetTeams()
         {
-            if (args.Error != null)
+            _teamsService.FetchAllTeams((allTeams) =>
             {
-                Logger.Log(LogLevel.Error, args.Error.ToString());
-                return;
-            }
-
-            if (args.Result is EntityCollection result)
-            {
-                AllRoles = result.Entities.Select(e => e.GetAttributeValue<string>("name")).ToList();
-                Logger.Log(LogLevel.Information, $"Found {result.Entities.Count} roles");
-            }
-        }
-
-        /// <summary>
-        /// Initiates an asynchronous operation to fetch CRM entity data utilizing a specified fetch method.
-        /// </summary>
-        /// <param name="fetchMessage">Message to be displayed during data fetch.</param>
-        /// <param name="fetchMethod">A delegate that defines the method used to fetch the entity data.</param>
-        /// <param name="callback">Callback function to process and handle fetched data.</param>
-        private void FetchEntities(string fetchMessage, Func<IOrganizationService, object> fetchMethod, Action<RunWorkerCompletedEventArgs> callback)
-        {
-            WorkAsync(new WorkAsyncInfo
-            {
-                Message = fetchMessage,
-                Work = (_, args) => args.Result = fetchMethod(Service),
-                PostWorkCallBack = callback
+                AllTeams = allTeams;
+                Logger.Log(LogLevel.Information, $"Found {allTeams.Count} teams");
             });
         }
 
@@ -438,14 +395,21 @@ namespace Role_Switcher
         {
             applyButton.Enabled = true;
             ClearRoleCollections();
+            ClearTeamCollections();
             ClearUsers();
 
             SaveSettings();
             base.UpdateConnection(newService, detail, actionName, parameter);
+
+            _roleService = new RoleService(Service, Logger, WorkAsync, m => SetWorkingMessage(m));
+            _teamsService = new TeamsService(Service, Logger, WorkAsync, m => SetWorkingMessage(m));
+            _playlistService = new PlaylistService(Playlists, EMPTY_PLAYLIST, SaveSettings);
+
             LoadSettings();
 
             LogInfo("Connection has changed to: {0}", detail.WebApplicationUrl);
             GetRoles();
+            GetTeams();
         }
 
         /// <summary>
@@ -457,6 +421,17 @@ namespace Role_Switcher
             RolesToApply.Clear();
             AssignedRoles.Clear();
             UnassignedRoles.Clear();
+        }
+
+        /// <summary>
+        /// Clears collections related teams roles to prevent data inconsistency upon connection change.
+        /// </summary>
+        private void ClearTeamCollections()
+        {
+            AllTeams.Clear();
+            TeamsToApply.Clear();
+            AssignedTeams.Clear();
+            UnassignedTeams.Clear();
         }
 
         /// <summary>
@@ -574,7 +549,7 @@ namespace Role_Switcher
         private void savePlaylist_Click(object sender, EventArgs e)
         {
             var selected = (Playlist)editPlaylistComboBox.SelectedItem;
-            _playlistService.UpdatePlaylist(selected, editPlaylistName.Text, AssignedRoles);
+            _playlistService.UpdatePlaylist(selected, editPlaylistName.Text, AssignedRoles, AssignedTeams);
 
             playlistBindingSource.ResetBindings(false);
             RolesToApply.ResetBindings();
@@ -596,6 +571,8 @@ namespace Role_Switcher
 
             AssignedRoles.Clear();
             UnassignedRoles.Clear();
+            AssignedTeams.Clear();
+            UnassignedTeams.Clear();
 
             // Handle UI updates and role assignments based on the selected playlist.
             if (selectedPlaylist == EMPTY_PLAYLIST)
@@ -606,16 +583,17 @@ namespace Role_Switcher
             {
                 editPlaylistName.Text = selectedPlaylist.Name;
 
-                foreach (var role in selectedPlaylist.Roles)
-                {
-                    AssignedRoles.Add(role);
-                }
+                foreach (var role in selectedPlaylist.Roles) AssignedRoles.Add(role);
+                foreach (var role in AllRoles.Except(selectedPlaylist.Roles)) UnassignedRoles.Add(role);
 
-                foreach (var role in AllRoles.Except(selectedPlaylist.Roles))
-                {
-                    UnassignedRoles.Add(role);
-                }
+                foreach (var team in selectedPlaylist.Teams) AssignedTeams.Add(team);
+                foreach (var team in AllTeams.Except(selectedPlaylist.Teams)) UnassignedTeams.Add(team);
             }
+
+            assignedTeamsList.SelectedIndex = -1;
+            unasssignedTeamsList.SelectedIndex = -1;
+            assignedRolesList.SelectedIndex = -1;
+            unassingedRolesList.SelectedIndex = -1;
         }
 
         /// <summary>
@@ -633,6 +611,15 @@ namespace Role_Switcher
             {
                 AssignedRoles.Add(role);
                 UnassignedRoles.Remove(role);
+            }
+
+            var teamsToChange = new string[unasssignedTeamsList.SelectedItems.Count];
+            unasssignedTeamsList.SelectedItems.CopyTo(teamsToChange, 0);
+
+            foreach (string team in teamsToChange)
+            {
+                AssignedTeams.Add(team);
+                UnassignedTeams.Remove(team);
             }
         }
 
@@ -652,6 +639,15 @@ namespace Role_Switcher
                 UnassignedRoles.Add(role);
                 AssignedRoles.Remove(role);
             }
+
+            var teamsToChange = new string[assignedTeamsList.SelectedItems.Count];
+            assignedTeamsList.SelectedItems.CopyTo(teamsToChange, 0);
+
+            foreach (string team in teamsToChange)
+            {
+                UnassignedTeams.Add(team);
+                AssignedTeams.Remove(team);
+            }
         }
 
         /// <summary>
@@ -665,9 +661,11 @@ namespace Role_Switcher
             Playlist selectedPlaylist = (Playlist)playlistComboBox.SelectedItem;
             if (selectedPlaylist == null) return;
             RolesToApply.Clear();
+            TeamsToApply.Clear();
             if (selectedPlaylist != EMPTY_PLAYLIST)
             {
                 foreach (string role in selectedPlaylist.Roles) { RolesToApply.Add(role); }
+                foreach (string team in selectedPlaylist.Teams) { TeamsToApply.Add(team); }
             }
         }
 
@@ -685,12 +683,14 @@ namespace Role_Switcher
 
             var users = userGrid.SelectedRows;
             bool replaceRoles = removeRolesCheck.Checked;
+            bool replaceTeams = removeTeamsCheck.Checked;
 
-            if (ConfirmRoleApplication(users.Count, playlist.Name, replaceRoles) == DialogResult.Cancel)
+            if (ConfirmRoleApplication(users.Count, playlist.Name, replaceRoles, replaceTeams) == DialogResult.Cancel)
                 return;
 
             var userGuids = _userGridBuilder.ExtractUserIds(userGrid);
             _roleService.ApplyRolesToUsers(userGuids, playlist.Roles, replaceRoles);
+            _teamsService.ApplyTeamsToUsers(userGuids, playlist.Teams, replaceTeams);
         }
 
         /// <summary>
@@ -700,9 +700,9 @@ namespace Role_Switcher
         /// <param name="playlistName">The name of the playlist.</param>
         /// <param name="replaceRoles">If set to <c>true</c>, indicates current roles of the users will be replaced.</param>
         /// <returns>The dialog result of the confirmation dialog.</returns>
-        private DialogResult ConfirmRoleApplication(int userCount, string playlistName, bool replaceRoles)
+        private DialogResult ConfirmRoleApplication(int userCount, string playlistName, bool replaceRoles, bool replaceTeams)
         {
-            var message = BuildConfirmationMessage(userCount, playlistName, replaceRoles);
+            var message = BuildConfirmationMessage(userCount, playlistName, replaceRoles, replaceTeams);
             return MessageBox.Show(message, "Apply Roles?", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
         }
 
@@ -713,13 +713,14 @@ namespace Role_Switcher
         /// <param name="playlistName">The name of the playlist.</param>
         /// <param name="replaceRoles">If set to <c>true</c>, indicates current roles of the users will be replaced.</param>
         /// <returns>The constructed confirmation message.</returns>
-        private string BuildConfirmationMessage(int userCount, string playlistName, bool replaceRoles)
+        private string BuildConfirmationMessage(int userCount, string playlistName, bool replaceRoles, bool replaceTeams)
         {
             var message = new StringBuilder($"You are about to apply the playlist {playlistName} to {userCount} users");
 
             if (replaceRoles)
                 message.Append(" and remove all their current roles");
 
+            if (replaceTeams) message.Append(" and remove all their current teams");
             message.Append(".\n Are you sure?");
 
             return message.ToString();
@@ -729,6 +730,47 @@ namespace Role_Switcher
         {
             var about = new AboutDialog();
             about.ShowDialog();
+        }
+
+        private int previousUnassingedRolesList_SelectedIndex = -1;
+        private int previousAssignedRolesList_SelectedIndex = -1;
+        private int previousUnassignedTeamsList_SelectedIndex = -1;
+        private int previousAssignedTeamsList_SelectedIndex = -1;
+
+        private void unassingedRolesList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (unassingedRolesList.SelectedItems.Count == 1 && unassingedRolesList.SelectedIndex == previousUnassingedRolesList_SelectedIndex)
+            {
+                unassingedRolesList.SelectedIndex = -1;
+            }
+            previousUnassingedRolesList_SelectedIndex = unassingedRolesList.SelectedIndex;
+        }
+
+        private void assignedRolesList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (assignedRolesList.SelectedItems.Count == 1 && assignedRolesList.SelectedIndex == previousAssignedRolesList_SelectedIndex)
+            {
+                assignedRolesList.SelectedIndex = -1;
+            }
+            previousAssignedRolesList_SelectedIndex = assignedRolesList.SelectedIndex;
+        }
+
+        private void unasssignedTeamsList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (unasssignedTeamsList.SelectedItems.Count == 1 && unasssignedTeamsList.SelectedIndex == previousUnassignedTeamsList_SelectedIndex)
+            {
+                unasssignedTeamsList.SelectedIndex = -1;
+            }
+            previousUnassignedTeamsList_SelectedIndex = unasssignedTeamsList.SelectedIndex;
+        }
+
+        private void assignedTeamsList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (assignedTeamsList.SelectedItems.Count == 1 && assignedTeamsList.SelectedIndex == previousAssignedTeamsList_SelectedIndex)
+            {
+                assignedTeamsList.SelectedIndex = -1;
+            }
+            previousAssignedTeamsList_SelectedIndex = assignedTeamsList.SelectedIndex;
         }
     }
 }

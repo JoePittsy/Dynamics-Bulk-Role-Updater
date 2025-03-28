@@ -220,11 +220,13 @@
     <Compile Include="RSLogManager.cs" />
     <Compile Include="Services\PlaylistService.cs" />
     <Compile Include="Services\RoleService.cs" />
+    <Compile Include="Services\TeamService.cs" />
     <Compile Include="Services\UserGridBuilder.cs" />
     <Compile Include="Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\LogMessage.datasource" />
     <None Include="Properties\DataSources\Playlist.datasource" />

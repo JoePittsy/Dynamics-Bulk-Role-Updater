@@ -51,7 +51,8 @@ namespace Role_Switcher.Services
             {
                 Id = GenerateUniqueGuid(),
                 Name = "New Playlist",
-                Roles = new List<string>()
+                Roles = new List<string>(),
+                Teams = new List<string>()
             };
 
             _playlists.Add(playlist);
@@ -80,13 +81,14 @@ namespace Role_Switcher.Services
         /// <param name="playlist">The playlist to update.</param>
         /// <param name="name">The new name.</param>
         /// <param name="roles">The new list of roles.</param>
-        public void UpdatePlaylist(Playlist playlist, string name, IEnumerable<string> roles)
+        public void UpdatePlaylist(Playlist playlist, string name, IEnumerable<string> roles, IEnumerable<string> teams)
         {
             if (playlist == null || playlist == _emptyPlaylist)
                 return;
 
             playlist.Name = name;
             playlist.Roles = roles.ToList();
+            playlist.Teams = teams.ToList();
             SaveSettings?.Invoke();
         }
     }
