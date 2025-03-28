@@ -20,12 +20,22 @@ jobs:
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
-      
-    - name: Restore NuGet packages
+          
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1
+
+    - name: Restore packages
       run: |
-        cd "Role Switcher"
-        nuget restore "Role Switcher.sln"
-      
+        nuget restore "Role Switcher/Role Switcher.sln"
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.config') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
     - name: Build the project
       run: |
         cd "Role Switcher"
