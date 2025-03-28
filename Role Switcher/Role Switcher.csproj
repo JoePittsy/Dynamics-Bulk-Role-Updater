@@ -204,7 +204,7 @@
       <DependentUpon>AboutDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="MyPlugin.cs" />
-    <Compile Include="Playlist.cs" />
+    <Compile Include="Models\Playlist.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -218,6 +218,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RSLogManager.cs" />
+    <Compile Include="Services\RoleService.cs" />
     <Compile Include="Settings.cs" />
   </ItemGroup>
   <ItemGroup>

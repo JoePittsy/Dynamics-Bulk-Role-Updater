@@ -11,16 +11,16 @@ using System.Linq;
 using System.Data;
 using System;
 using System.Text;
+using Role_Switcher.Services;
 
 namespace Role_Switcher
 {
     public partial class RoleSwitcher : PluginControlBase, IMessageBusHost, IGitHubPlugin, IAboutPlugin
     {
-        private readonly static Playlist EMPTY_PLAYLIST = new Playlist { Id = Guid.Empty, Name = string.Empty, Roles = new List<string>(0) };
+        private static readonly Playlist EMPTY_PLAYLIST = new Playlist { Id = Guid.Empty, Name = string.Empty, Roles = new List<string>(0) };
 
         private Settings Settings;
         private RSLogManager Logger;
-
 
         private BindingList<Playlist> Playlists = new BindingList<Playlist>() { EMPTY_PLAYLIST };
         private List<string> AllRoles = new List<string>();
@@ -31,8 +31,9 @@ namespace Role_Switcher
         private Timer SearchTimer = new Timer();
         private bool LogsOpen = false;
 
+        private List<Guid> UsersToEdit = new List<Guid>();
 
-        private List<Guid> UsersToEdit = new List<Guid> ();
+        private RoleService _roleService;
 
         public string RepositoryName => "Dynamics-Bulk-Role-Updater";
 
@@ -91,8 +92,6 @@ namespace Role_Switcher
             playlistRoles.DataSource = RolesToApply;
         }
 
-
-
         /// <summary>
         /// Handles the Load event of MyPluginControl.
         /// </summary>
@@ -101,9 +100,8 @@ namespace Role_Switcher
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
             LoadSettings();
+            _roleService = new RoleService(Service, Logger, WorkAsync, m => SetWorkingMessage(m));
         }
-
-
 
         /// <summary>
         /// Loads the settings for the plugin, initializing them if necessary.
@@ -152,8 +150,10 @@ namespace Role_Switcher
             }
             else
             {
-                Settings = new Settings();
-                Settings.Playlists = new List<Playlist> { };
+                Settings = new Settings
+                {
+                    Playlists = new List<Playlist>()
+                };
                 Logger.Log(LogLevel.Warning, "Settings not found => a new settings file has been created!");
             }
         }
@@ -181,7 +181,6 @@ namespace Role_Switcher
             // organization if XrmToolBox is not yet connected
             ExecuteMethod(GetAllUsers);
         }
-
 
         /// <summary>
         /// Converts a list of dictionaries into a DataTable.
@@ -248,10 +247,8 @@ namespace Role_Switcher
                 allKeys.Remove("fullname");
             }
 
-
             // Add columns to the DataTable.
             foreach (var key in allKeys) AddColumn(dataTable, key);
-
         }
 
         /// <summary>
@@ -333,7 +330,7 @@ namespace Role_Switcher
             // Assuming the first column as the primary search column; adjust as necessary
             foreach (DataGridViewRow row in userGrid.Rows)
             {
-                if (row.Cells[1].Value != null && row.Cells[1].Value.ToString().ToLower().StartsWith(searchValue))
+                if (row.Cells[1].Value?.ToString().ToLower().StartsWith(searchValue) == true)
                 {
                     userGrid.CurrentCell = row.Cells[0];
                     break;
@@ -361,9 +358,6 @@ namespace Role_Switcher
             SearchText.Clear();
         }
 
-
-
-
         /// <summary>
         /// Initiates an asynchronous operation to fetch user data utilizing a specified fetch method.
         /// </summary>
@@ -373,7 +367,7 @@ namespace Role_Switcher
             WorkAsync(new WorkAsyncInfo
             {
                 Message = "Fetching users...",
-                Work = (worker, args) => args.Result = fetchMethod(Service),
+                Work = (_, args) => args.Result = fetchMethod(Service),
                 PostWorkCallBack = ProcessFetchedUsers
             });
         }
@@ -390,8 +384,7 @@ namespace Role_Switcher
                 return;
             }
 
-            var result = args.Result as EntityCollection;
-            if (result != null)
+            if (args.Result is EntityCollection result)
             {
                 UpdateUserGrid(result);
                 Logger.Log(LogLevel.Information, $"Found {result.Entities.Count} users");
@@ -485,8 +478,7 @@ namespace Role_Switcher
                 return;
             }
 
-            var result = args.Result as EntityCollection;
-            if (result != null)
+            if (args.Result is EntityCollection result)
             {
                 AllRoles = result.Entities.Select(e => e.GetAttributeValue<string>("name")).ToList();
                 Logger.Log(LogLevel.Information, $"Found {result.Entities.Count} roles");
@@ -504,14 +496,13 @@ namespace Role_Switcher
             WorkAsync(new WorkAsyncInfo
             {
                 Message = fetchMessage,
-                Work = (worker, args) => args.Result = fetchMethod(Service),
+                Work = (_, args) => args.Result = fetchMethod(Service),
                 PostWorkCallBack = callback
             });
         }
 
-
         /// <summary>
-        /// Saves the current settings of the application. 
+        /// Saves the current settings of the application.
         /// </summary>
         /// <remarks>
         /// This method will save settings such as the state of the logs and playlists,
@@ -546,14 +537,12 @@ namespace Role_Switcher
                                     .ToList();
         }
 
-
-
         /// <summary>
         /// Handles the logic to be executed when the plugin is closing.
         /// </summary>
         /// <param name="info">Information related to the plugin closing event.</param>
         /// <remarks>
-        /// This method saves the current settings before calling the base implementation 
+        /// This method saves the current settings before calling the base implementation
         /// of ClosingPlugin to ensure any additional closing logic in the base class is executed.
         /// </remarks>
         public override void ClosingPlugin(PluginCloseInfo info)
@@ -625,7 +614,6 @@ namespace Role_Switcher
             }
         }
 
-
         /// <summary>
         /// Handles the click event of the fetchXMLButton.
         /// </summary>
@@ -641,7 +629,6 @@ namespace Role_Switcher
                 TargetArgument = "<fetch><entity name=\"systemuser\"/></fetch>"
             });
         }
-
 
         /// <summary>
         /// Handles the click event of the toggleLogsButton.
@@ -675,14 +662,13 @@ namespace Role_Switcher
             return guid;
         }
 
-
         /// <summary>
         /// Handles the click event of the newPlaylist button.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         /// <remarks>
-        /// Creates a new playlist with a unique identifier, updates the UI, adds it to the Playlists collection, 
+        /// Creates a new playlist with a unique identifier, updates the UI, adds it to the Playlists collection,
         /// and saves the settings. The newly created playlist is then selected in the editPlaylistComboBox.
         /// </remarks>
         private void newPlaylist_Click(object sender, EventArgs e)
@@ -706,7 +692,7 @@ namespace Role_Switcher
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         /// <remarks>
         /// When a playlist is selected and the delete button is clicked, a confirmation message box appears.
-        /// If the user confirms deletion, the selected playlist is removed from the Playlists collection, 
+        /// If the user confirms deletion, the selected playlist is removed from the Playlists collection,
         /// settings are saved, and the selected item in the editPlaylistComboBox is set to EMPTY_PLAYLIST.
         /// Deletion of EMPTY_PLAYLIST is prevented.
         /// </remarks>
@@ -727,7 +713,6 @@ namespace Role_Switcher
                 SaveSettings();
             }
         }
-
 
         /// <summary>
         /// Saves the modified playlist data.
@@ -755,7 +740,6 @@ namespace Role_Switcher
             // Persist the updated settings.
             SaveSettings();
         }
-
 
         /// <summary>
         /// Handles the event when a playlist selection is changed.
@@ -794,7 +778,6 @@ namespace Role_Switcher
             }
         }
 
-
         /// <summary>
         /// Handles the event when the "Assign" button is clicked.
         /// Moves selected roles from the "unassigned" list to the "assigned" list.
@@ -812,7 +795,6 @@ namespace Role_Switcher
                 UnassignedRoles.Remove(role);
             }
         }
-
 
         /// <summary>
         /// Handles the event when the "Unassign" button is clicked.
@@ -832,7 +814,6 @@ namespace Role_Switcher
             }
         }
 
-
         /// <summary>
         /// Event handler for the change of selected item in the playlistComboBox.
         /// Updates the rolesToApply list based on the roles within the selected playlist.
@@ -850,320 +831,7 @@ namespace Role_Switcher
             }
         }
 
-        #endregion
-
-
-        /// <summary>
-        /// Retrieves roles for business units and updates user roles accordingly.
-        /// </summary>
-        /// <param name="replaceRoles">Indicates whether to replace existing roles.</param>
-        private void GetRolesForBUs(bool replaceRoles)
-        {
-            WorkAsync(new WorkAsyncInfo
-            {
-                Message = "Fetching roles...",
-                Work = (worker, args) =>
-                {
-                    args.Result = RolesToApply.Count == 0 ? new EntityCollection() : RetrieveRoles();
-                },
-                PostWorkCallBack = (args) =>
-                {
-                    HandleRoleRetrievalResponse(args, replaceRoles);
-                }
-            });
-        }
-
-        /// <summary>
-        /// Retrieve roles based on the roles specified in rolesToApply.
-        /// </summary>
-        /// <returns>A result from the role retrieval query.</returns>
-        private EntityCollection RetrieveRoles()
-        {
-            var query = new QueryExpression("role")
-            {
-                ColumnSet = new ColumnSet("roleid", "businessunitid")
-            };
-            var roleCriteria = new FilterExpression(LogicalOperator.Or);
-            query.Criteria.AddFilter(roleCriteria);
-
-            foreach (var role in RolesToApply)
-            {
-                roleCriteria.AddCondition("name", ConditionOperator.Equal, role);
-            }
-
-            return Service.RetrieveMultiple(query);
-        }
-
-        /// <summary>
-        /// Handles the response from the role retrieval operation and updates user roles accordingly.
-        /// </summary>
-        /// <param name="args">The arguments from the PostWorkCallBack.</param>
-        /// <param name="replaceRoles">Indicates whether to replace existing roles.</param>
-        private void HandleRoleRetrievalResponse(RunWorkerCompletedEventArgs args, bool replaceRoles)
-        {
-            if (args.Error != null)
-            {
-                Logger.Log(LogLevel.Error, args.Error.ToString());
-            }
-
-            var result = args.Result as EntityCollection;
-
-            var buRoles = result?.Entities.Select(e => new Tuple<Guid, string, Guid>(
-                e.GetAttributeValue<EntityReference>("businessunitid").Id,
-                e.GetAttributeValue<string>("name"),
-                e.Id))
-            .ToList() ?? new List<Tuple<Guid, string, Guid>>();
-
-            Logger.Log(LogLevel.Information, $"Found {result?.Entities.Count ?? 0} roles");
-
-            UpdateUsersRoles(buRoles, replaceRoles);
-        }
-
-
-
-        /// <summary>
-        /// Updates roles for users asynchronously, providing progress updates.
-        /// </summary>
-        /// <param name="buRoles">A list of business unit roles.</param>
-        /// <param name="replaceRoles">Whether to replace existing roles.</param>
-        private void UpdateUsersRoles(List<Tuple<Guid, string, Guid>> buRoles, bool replaceRoles)
-        {
-            WorkAsync(new WorkAsyncInfo
-            {
-                Message = "Assigning Roles...",
-                Work = (worker, args) =>
-                {
-                    worker.WorkerReportsProgress = true;
-                    AssignRolesToUsers(worker, buRoles, replaceRoles);
-                },
-                ProgressChanged = args =>
-                {
-                    HandleProgressChanged(args);
-                },
-                PostWorkCallBack = args =>
-                {
-                    HandlePostWorkCallback(args);
-                }
-            });
-        }
-
-
-        /// <summary>
-        /// Handles progress changed events during the role assignment process.
-        /// </summary>
-        /// <param name="args">Arguments from the progress changed event.</param>
-        private void HandleProgressChanged(ProgressChangedEventArgs args)
-        {
-            var data = (Tuple<string, string, string>)args.UserState;
-            SetWorkingMessage(data.Item1);
-            Logger.Log(LogLevel.Information, $"Applied roles to {data.Item2}, {data.Item1}");
-            if (data.Item3 != null) Logger.Log(LogLevel.Error, data.Item3);
-        }
-
-        /// <summary>
-        /// Handles post work callback, performing any cleanup or final logging.
-        /// </summary>
-        /// <param name="args">Arguments from the post work callback event.</param>
-        private void HandlePostWorkCallback(RunWorkerCompletedEventArgs args)
-        {
-            UsersToEdit.Clear();
-            if (args.Error != null)
-            {
-                Logger.Log(LogLevel.Error, args.Error.ToString());
-            }
-            if (args.Result is EntityCollection result)
-            {
-                Logger.Log(LogLevel.Information, $"Found {result.Entities.Count} roles");
-            }
-        }
-
-
-        /// <summary>
-        /// Creates a tuple representing progress data.
-        /// </summary>
-        /// <param name="message">A progress message.</param>
-        /// <param name="status">A status message indicating the amount of work done.</param>
-        /// <param name="error">An error message, if applicable.</param>
-        /// <returns>A tuple containing the progress data.</returns>
-        private Tuple<string, string, string> CreateProgressData(string message, string status, string error)
-        {
-            return new Tuple<string, string, string>(message, status, error);
-        }
-        /// <summary>
-        /// Assigns roles to users with progress tracking.
-        /// </summary>
-        /// <param name="worker">Background worker to report progress.</param>
-        /// <param name="buRoles">A list of business unit roles.</param>
-        /// <param name="replaceRoles">Whether to replace existing roles.</param>
-        private void AssignRolesToUsers(BackgroundWorker worker, List<Tuple<Guid, string, Guid>> buRoles, bool replaceRoles)
-        {
-            worker.ReportProgress(0, CreateProgressData("Assigning Roles...", "0% Done...", null));
-
-            // Perform user query and group results by user
-            var grouped = QueryUsersAndGroup(replaceRoles);
-
-            // Now, for each user we need to update roles
-            var usersDone = 0;
-            foreach (var group in grouped)
-            {
-                usersDone++;
-                // Fetching necessary user details
-                var userId = group.FirstOrDefault().Id;
-                var usersBuId = group.FirstOrDefault().GetAttributeValue<EntityReference>("businessunitid").Id;
-                var rolesToAdd = buRoles.Where(r => r.Item1 == usersBuId).ToList();
-
-                // Create and execute requests to update roles
-                ExecuteRoleUpdates(userId, rolesToAdd, group, replaceRoles);
-
-                // Report progress
-                var progress = (int)Math.Ceiling(((float)usersDone / (float)grouped.Count()) * 100);
-                worker.ReportProgress(progress, new Tuple<string, string, string>($"{progress}% Done...", group.Key, null));
-            }
-        }
-
-        /// <summary>
-        /// Queries users and groups the results.
-        /// </summary>
-        /// <param name="replaceRoles">Whether to replace existing roles.</param>
-        /// <returns>Grouped query results.</returns>
-        private IEnumerable<IGrouping<string, Entity>> QueryUsersAndGroup(bool replaceRoles)
-        {
-            var query = new QueryExpression("systemuser");
-            query.ColumnSet.AddColumns("fullname", "systemuserid", "businessunitid");
-            var query_Or = new FilterExpression(LogicalOperator.Or);
-            query.Criteria.AddFilter(query_Or);
-            foreach (var user in UsersToEdit) query_Or.AddCondition("systemuserid", ConditionOperator.Equal, user);
-
-            if (replaceRoles)
-            {
-                // Additional query logic for replacing roles
-                var rolemembership = query.AddLink("systemuserroles", "systemuserid", "systemuserid", JoinOperator.LeftOuter);
-                rolemembership.EntityAlias = "rolemembership";
-
-                var role = rolemembership.AddLink("role", "roleid", "roleid", JoinOperator.LeftOuter);
-                role.EntityAlias = "role";
-                role.Columns.AddColumn("roleid");
-            }
-
-            var results = Service.RetrieveMultiple(query);
-            return results.Entities.GroupBy(e => $"{e.GetAttributeValue<string>("fullname")}:{e.Id}").ToList();
-        }
-
-        /// <summary>
-        /// Executes requests to update roles.
-        /// </summary>
-        /// <param name="userId">User identifier.</param>
-        /// <param name="rolesToAdd">List of roles to add.</param>
-        /// <param name="group">Group of user entities.</param>
-        /// <param name="replaceRoles">Whether to replace existing roles.</param>
-        private void ExecuteRoleUpdates(Guid userId, List<Tuple<Guid, string, Guid>> rolesToAdd, IGrouping<string, Entity> group, bool replaceRoles)
-        {
-            var associateRequest = CreateAssociateRequests(userId, rolesToAdd);
-            var disassociateRequest = CreateDisassociateRequests(userId, group, replaceRoles);
-
-            var multiDisassociateRequest = new ExecuteMultipleRequest()
-            {
-                Settings = new ExecuteMultipleSettings()
-                {
-                    ContinueOnError = true,
-                    ReturnResponses = true
-                },
-                Requests = disassociateRequest
-            };
-
-            var mutliAssociateRequest = new ExecuteMultipleRequest()
-            {
-                Settings = new ExecuteMultipleSettings()
-                {
-                    ContinueOnError = true,
-                    ReturnResponses = true
-                },
-                Requests = associateRequest
-            };
-
-            var dResult = (ExecuteMultipleResponse)Service.Execute(multiDisassociateRequest);
-            var aResult = (ExecuteMultipleResponse)Service.Execute(mutliAssociateRequest);
-
-            HandleRoleUpdateResults(dResult);
-            HandleRoleUpdateResults(aResult);
-
-        }
-
-        /// <summary>
-        /// Creates an associate request to assign roles to a user.
-        /// </summary>
-        /// <param name="userId">User identifier.</param>
-        /// <param name="rolesToAdd">Roles to be added to the user.</param>
-        /// <returns>An associate request.</returns>
-        private OrganizationRequestCollection CreateAssociateRequests(Guid userId, List<Tuple<Guid, string, Guid>> rolesToAdd)
-        {
-            var requests = new OrganizationRequestCollection();
-            foreach (var role in rolesToAdd)
-            {
-                var associateRequest = new AssociateRequest
-                {
-                    Target = new EntityReference("systemuser", userId),
-                    RelatedEntities = new EntityReferenceCollection(),
-                    Relationship = new Relationship("systemuserroles_association")
-                };
-
-                associateRequest.RelatedEntities.Add(new EntityReference("systemrole", role.Item3));
-                requests.Add(associateRequest);
-            }
-
-            return requests;
-        }
-
-
-        /// <summary>
-        /// Creates a disassociate request to remove roles from a user.
-        /// </summary>
-        /// <param name="userId">User identifier.</param>
-        /// <param name="group">Group of user entities.</param>
-        /// <param name="replaceRoles">Whether to replace existing roles.</param>
-        /// <returns>A disassociate request.</returns>
-        private OrganizationRequestCollection CreateDisassociateRequests(Guid userId, IGrouping<string, Entity> group, bool replaceRoles)
-        {
-            var requests = new OrganizationRequestCollection ();
-
-            if (replaceRoles)
-            {
-                foreach (var role in group)
-                {
-                    var disassociateRequest = new DisassociateRequest
-                    {
-                        Target = new EntityReference("systemuser", userId),
-                        RelatedEntities = new EntityReferenceCollection(),
-                        Relationship = new Relationship("systemuserroles_association")
-                    };
-                    if (role.TryGetAttributeValue("role.roleid", out AliasedValue roleId))
-                    {
-                        disassociateRequest.RelatedEntities.Add(new EntityReference("systemrole", (Guid)roleId.Value));
-                        requests.Add(disassociateRequest);
-                    }
-                }
-            }
-
-            return requests;
-        }
-
-
-        /// <summary>
-        /// Handles the results of role update requests.
-        /// </summary>
-        /// <param name="result">The result from executing multiple requests.</param>
-        private void HandleRoleUpdateResults(ExecuteMultipleResponse result)
-        {
-            foreach (var responseItem in result.Responses)
-            {
-                // Check for errors/faults.
-                if (responseItem.Fault != null)
-                {
-                    Logger.Log(LogLevel.Error, $"Error updating roles: {responseItem.Fault.Message}");
-                }
-            }
-        }
-
+        #endregion Playlist Specific Methods
 
         /// <summary>
         /// Handles the Click event of the applyButton control. It applies selected roles from the playlist to selected users.
@@ -1174,23 +842,24 @@ namespace Role_Switcher
         {
             var playlist = (Playlist)playlistComboBox.SelectedItem;
             if (playlist == EMPTY_PLAYLIST) return;
+
             var users = userGrid.SelectedRows;
             bool replaceRoles = removeRolesCheck.Checked;
 
             if (ConfirmRoleApplication(users.Count, playlist.Name, replaceRoles) == DialogResult.Cancel)
                 return;
 
-            UsersToEdit.Clear();
-            ExtractUserIds(users);
-            GetRolesForBUs(replaceRoles);
+            var userGuids = ExtractUserIds(users);
+            _roleService.ApplyRolesToUsers(userGuids, playlist.Roles, replaceRoles);
         }
 
         /// <summary>
         /// Extracts and logs user IDs from the grid selection, adding them to the usersToEdit list.
         /// </summary>
         /// <param name="users">The selected users in the grid.</param>
-        private void ExtractUserIds(DataGridViewSelectedRowCollection users)
+        private List<Guid> ExtractUserIds(DataGridViewSelectedRowCollection users)
         {
+            var ids = new List<Guid>();
             int idColumnIndex = userGrid.Columns.IndexOf(userGrid.Columns["systemuserid"]);
 
             foreach (DataGridViewRow user in users)
@@ -1198,8 +867,10 @@ namespace Role_Switcher
                 var id = (string)user.Cells[idColumnIndex].Value;
                 if (id == null) continue;
                 Logger.Log(LogLevel.Information, $"User ID: {id}");
-                UsersToEdit.Add(new Guid(id));
+                ids.Add(new Guid(id));
             }
+
+            return ids;
         }
 
         /// <summary>

@@ -20,9 +20,9 @@ namespace Role_Switcher
         public override string ToString() => $"[{Level}] {Message}";
     }
 
-    internal class RSLogManager
+    public class RSLogManager
     {
-        private LogManager _logger;
+        private readonly LogManager _logger;
         public BindingList<LogMessage> Messages;
 
         public RSLogManager()
@@ -63,12 +63,15 @@ namespace Role_Switcher
                 case LogLevel.Information:
                     logLevelBrush = messageBrush;
                     break;
+
                 case LogLevel.Warning:
                     logLevelBrush = Brushes.DarkGoldenrod;
                     break;
+
                 case LogLevel.Error:
                     logLevelBrush = Brushes.Red;
                     break;
+
                 default:
                     logLevelBrush = messageBrush;
                     break;
