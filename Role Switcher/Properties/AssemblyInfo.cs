@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Dynamics Bulk Role Updater")]
-[assembly: AssemblyDescription("Create sets of roles and apply them to users with 1 click!")]
+[assembly: AssemblyDescription("Create sets of roles and teams then apply them to users with 1 click!")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Joseph Pitts")]
 [assembly: AssemblyProduct("Dynamics Bulk Role Updater")]
-[assembly: AssemblyCopyright("Copyright Joseph Pitts ©  2023")]
+[assembly: AssemblyCopyright("Copyright Joseph Pitts ©  2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.3")]
-[assembly: AssemblyFileVersion("1.0.3")]
+[assembly: AssemblyVersion("1.0.4")]
+[assembly: AssemblyFileVersion("1.0.4")]
